@@ -715,8 +715,26 @@
             const data = snapshot.val() || {};
             let streak = 0;
 
+            // Helper to evaluate if a user completed a specific day node
+            const isDayComplete = (dayPath) => {
+                if (!data[dayPath]) return false;
+                
+                // Search keys case-insensitively to handle minor typos/case mismatches
+                const userKey = Object.keys(data[dayPath]).find(
+                    k => k.trim().toLowerCase() === cleanName.trim().toLowerCase()
+                );
+                
+                if (!userKey) return false;
+                const record = data[dayPath][userKey];
+
+                if (typeof record === 'object' && record !== null) {
+                    return record.done === true || record.done === 'true' || record.completed === true;
+                }
+                return record === true || record === 'true';
+            };
+
             const todayPath = `w${Math.floor(totalDaysElapsed / 7)}_d${totalDaysElapsed % 7}`;
-            const todayDone = data[todayPath] && data[todayPath][cleanName] && data[todayPath][cleanName].done === true;
+            const todayDone = isDayComplete(todayPath);
 
             const startCheckDay = todayDone ? totalDaysElapsed : totalDaysElapsed - 1;
 
@@ -725,7 +743,7 @@
                 const d = i % 7;
                 const path = `w${w}_d${d}`;
 
-                if (data[path] && data[path][cleanName] && data[path][cleanName].done === true) {
+                if (isDayComplete(path)) {
                     streak++;
                 } else {
                     break;
