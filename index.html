@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bounmixay Family Brain Training App</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+    
+    <!-- Canvas Confetti SDK for Reward Animation -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary-text: #ffffff;
+            --body-text: #e2e8f0;
+            --muted-text: #94a3b8;
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.35);
+            --border-color: #334155;
+            --button-bg: #334155;
+            --flame-color: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            margin: 0;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container {
+            max-width: 480px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0 0 2px 0;
+            color: var(--primary-text);
+        }
+
+        p.subtitle {
+            margin: 0;
+            color: var(--muted-text);
+            font-size: 0.8rem;
+        }
+
+        /* Family Status */
+        .family-status-card {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+        }
+
+        .family-status-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .user-name-input {
+            width: 100%;
+            box-sizing: border-box;
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .family-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 6px;
+        }
+
+        .member-chip {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 0.78rem;
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted-text);
+        }
+
+        .member-chip.done {
+            border-color: var(--accent);
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            font-weight: 600;
+        }
+
+        /* Track Controls */
+        .user-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: var(--muted-text);
+            font-weight: 700;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--button-bg);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .selector-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        /* Exercise Card */
+        .exercise-card {
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px;
+            background-color: #0f172a;
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .focus-tag {
+            display: inline-block;
+            background: #334155;
+            color: var(--body-text);
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .streak-badge {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--flame-color);
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            transition: all 0.3s ease;
+        }
+
+        .streak-badge.active-streak {
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.3); }
+            100% { box-shadow: 0 0 14px rgba(245, 158, 11, 0.7); }
+        }
+
+        .exercise-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--primary-text) !important;
+            margin: 4px 0 8px 0;
+        }
+
+        .instruction-box {
+            font-size: 0.9rem;
+            line-height: 1.45;
+            color: var(--body-text) !important;
+            margin-bottom: 12px;
+        }
+
+        .instruction-box a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        .science-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: #34d399;
+        }
+
+        .science-title {
+            font-weight: 800;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Legacy Accordion Styling */
+        .legacy-accordion {
+            margin-bottom: 12px;
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 12px;
+            color: var(--body-text);
+            font-size: 0.8rem;
+        }
+
+        .legacy-accordion summary {
+            font-weight: 700;
+            color: var(--muted-text);
+            cursor: pointer;
+            user-select: none;
+            outline: none;
+        }
+
+        .legacy-accordion-text {
+            margin: 6px 0 0 0;
+            line-height: 1.45;
+            color: var(--body-text);
+        }
+
+        .timer-container {
+            text-align: center;
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+        }
+
+        .timer-display {
+            font-size: 1.9rem;
+            font-weight: 800;
+            font-family: monospace;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .timer-controls button {
+            padding: 5px 12px;
+            margin: 0 2px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .btn-start { background: var(--accent); color: #000; }
+        .btn-pause { background: #f59e0b; color: #000; }
+        .btn-reset { background: #64748b; color: #fff; }
+
+        .complete-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--accent-glow);
+            transition: transform 0.1s ease;
+        }
+
+        .complete-btn:active {
+            transform: scale(0.97);
+        }
+
+        .completed-badge {
+            display: none;
+            color: #34d399;
+            font-weight: 800;
+            text-align: center;
+            font-size: 0.95rem;
+            padding: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+        }
+
+        .progress-bar-container {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            height: 8px;
+            width: 100%;
+            margin-top: 14px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: var(--accent);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .streak-counter {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: var(--muted-text) !important;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Collapsed Archive Navigation */
+        .archive-nav-container {
+            margin-top: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+            text-align: center;
+        }
+
+        .toggle-archive-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted-text);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .archive-nav-content {
+            margin-top: 8px;
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .nav-dropdown {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: var(--primary-text);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .day-selector {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            margin-top: 4px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .day-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-btn {
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            background: #0f172a;
+            color: var(--muted-text);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .day-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 800;
+        }
+
+        .day-btn.completed {
+            border-color: var(--accent);
+            color: #34d399;
+        }
+    </style>
+
+    <!-- Firebase Compatibility SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <script>
+		const firebaseConfig = {
+		  apiKey: "AIzaSyCOLqpaMkqlnYb-aFcXeNT-qY_lF1AYpts",
+		  authDomain: "familybrainapp-e4c89.firebaseapp.com",
+		  databaseURL: "https://familybrainapp-e4c89-default-rtdb.firebaseio.com",
+		  projectId: "familybrainapp-e4c89",
+		  storageBucket: "familybrainapp-e4c89.firebasestorage.app",
+		  messagingSenderId: "633103619429",
+		  appId: "1:633103619429:web:bf660f9245ec81cba1fd8c",
+		  measurementId: "G-3T85DFMCN2"
+		};
+
+        firebase.initializeApp(firebaseConfig);
+        
+        window.firebaseDB = firebase.database();
+        window.dbRef = (db, path) => firebase.database().ref(path);
+        window.dbSet = (refObj, data) => refObj.set(data);
+        window.dbOnValue = (refObj, callback) => refObj.on('value', (snapshot) => callback(snapshot));
+
+        firebase.auth().signInAnonymously()
+            .then(() => {
+                console.log("Connected & Authenticated with Firebase!");
+                if (typeof listenToFamilyStatus === 'function') {
+                    listenToFamilyStatus();
+                }
+            })
+            .catch((err) => {
+                console.error("Auth Error:", err);
+                const grid = document.getElementById('familyGrid');
+                if (grid) grid.innerHTML = `<div style="color:red; font-size:0.8rem;">Conn Error: ${err.message}</div>`;
+            });
+    </script>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>16-Week Daily Mind Retraining</h1>
+        <p class="subtitle">Micro-habits backed by neuroscience.</p>
+    </header>
+
+    <!-- Family Live Sync Board -->
+    <div class="family-status-card">
+        <div class="family-status-title">
+            <span>👥 Today's Family Status</span>
+            <span id="syncIndicator" style="font-size: 0.7rem; color: #64748b;">🟢 Live Synced</span>
+        </div>
+
+        <div class="user-name-prompt">
+            <input type="text" id="userNameInput" class="user-name-input" placeholder="Your Name (e.g. Ruthie, Hannie, Hannah, BigJ, Aftyn, Dad, Matthew, Tigs, Sarah, Mom)" onchange="saveUserName()">
+        </div>
+
+        <div class="family-grid" id="familyGrid">
+            <div style="font-size: 0.78rem; color: #64748b;">Loading status...</div>
+        </div>
+    </div>
+
+    <!-- Track Selector -->
+    <div class="user-selector">
+        <button class="tab-btn active" id="btnKids" onclick="switchTrack('kids')">Youth Track</button>
+        <button class="tab-btn" id="btnAdult" onclick="switchTrack('adult')">Adult Track</button>
+    </div>
+
+    <!-- Exercise Card -->
+    <div class="exercise-card">
+        <div class="card-header-flex">
+            <span class="focus-tag" id="focusTag">Loading...</span>
+            <span class="streak-badge" id="flameBadge">🔥 0 Streak</span>
+        </div>
+
+        <h2 class="exercise-title" id="exerciseTitle">Loading...</h2>
+        
+        <div class="instruction-box" id="exerciseInstruction"></div>
+
+        <!-- Science Explanation -->
+        <div class="science-box">
+            <div class="science-title">🧠 What's happening in your brain:</div>
+            <div id="scienceText">Loading...</div>
+        </div>
+
+        <!-- Optional Accordion: Deep Mind & Legacy Tool -->
+        <details class="legacy-accordion" id="legacyAccordion">
+            <summary id="legacySummary">💡 Optional Deep Mind Tool</summary>
+            <div class="legacy-accordion-text" id="legacyText">Loading...</div>
+        </details>
+
+        <!-- Timer -->
+        <div class="timer-container">
+            <div class="timer-display" id="timerDisplay">05:00</div>
+            <div class="timer-controls">
+                <button class="btn-start" onclick="startTimer()">Start</button>
+                <button class="btn-pause" onclick="pauseTimer()">Pause</button>
+                <button class="btn-reset" onclick="resetTimer()">Reset</button>
+            </div>
+        </div>
+
+        <div class="completion-area">
+            <button class="complete-btn" id="completeBtn" onclick="markComplete()">Check Off Today's Exercise</button>
+            <div class="completed-badge" id="completedBadge">✓ Completed for Today!</div>
+        </div>
+
+        <!-- Hidden Archive Navigation (Collapsed by default) -->
+        <div class="archive-nav-container">
+            <button class="toggle-archive-btn" onclick="toggleArchiveNav()">⚙️ Look at Past/Future Days</button>
+            <div class="archive-nav-content" id="archiveNavContent" style="display: none;">
+                <div class="selector-label">Select Week</div>
+                <select class="nav-dropdown" id="weekDropdown" onchange="onWeekDropdownChange(this.value)"></select>
+
+                <div class="selector-label" style="margin-top: 8px;">Select Day</div>
+                <div class="day-selector" id="daySelector"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Tracker Progress -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="streak-counter" id="streakDisplay">Total Track Progress: 0 / 112 Days (0%)</div>
+</div>
+
+<script>
+    const PROGRAM_START_DATE_STR = "2026-09-14"; 
+
+    const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    // 16 Rotating Metacognitive & Legacy Principles (1 per week)
+    const legacyTools = [
+        "<strong>Observer Mind:</strong> You are not your thoughts or feelings; you are the observer of them. Say out loud: <em>'I notice a feeling of resistance,'</em> rather than <em>'I am lazy.'</em>",
+        "<strong>The 3 Socratic Questions:</strong> When stuck, ask: 1) What am I assuming that isn't true? 2) What is the smallest step forward? 3) What would I advise a friend to do?",
+        "<strong>Second-Order Thinking:</strong> Train your brain to ask <em>'And then what?'</em> three times before making a fast decision to see its long-term ripple effects.",
+        "<strong>Reframing Obstacles:</strong> Stress isn't a sign that you are failing; it's physiological fuel preparing your prefrontal cortex to adapt and solve a hard problem.",
+        "<strong>The Coaching Shift:</strong> When helping siblings or friends, stop giving answers. Ask: <em>'What do you think the very first 2-minute step is here?'</em>",
+        "<strong>Ultradian Wave Rest:</strong> High focus naturally lasts 45–90 minutes. True recovery means stepping completely away from screens to let the brain process.",
+        "<strong>Cognitive Friction Audit:</strong> If a good habit is hard to start, don't blame your willpower—remove 2 physical steps between you and the starting line.",
+        "<strong>Physiological Priming:</strong> Executive function relies on biological inputs. Hydration, 5 minutes of sunlight, and deep breathing restore focus faster than sheer effort.",
+        "<strong>Silent Pedagogy:</strong> People around you learn emotional regulation by watching how you handle friction when things go wrong, not from hearing rules.",
+        "<strong>The 'Sloppy First Draft' Rule:</strong> Perfectionism is just fear in disguise. Give yourself permission to do a terrible first 5 minutes just to get moving.",
+        "<strong>Pre-Commitment Strategy:</strong> Make decisions 24 hours early. Set out materials or open tabs the night before to eliminate morning decision fatigue.",
+        "<strong>Storytelling as Legacy:</strong> Package your failures and victories into short, honest stories. Stories stick in family memory far longer than instructions.",
+        "<strong>Stress Inversion (Sisu):</strong> Voluntary discomfort builds neural resilience. Choosing the harder path in small moments makes big life obstacles feel manageable.",
+        "<strong>Habit Anchoring:</strong> Attach new mental tools directly to existing default routines (e.g., practice 3 deep breaths every time you open your laptop).",
+        "<strong>The Generational Lens:</strong> Ask yourself: <em>'Is the way I'm handling this stress right now how I'd want my future kids to handle theirs?'</em>",
+        "<strong>Executive Autonomy:</strong> Focus is not a chore assigned by others; it is your personal sovereignty over your own time and attention."
+    ];
+
+    function getOrdinalSuffix(day) {
+        if (day > 3 && day < 21) return 'th';
+        switch (day % 10) {
+            case 1:  return "st";
+            case 2:  return "nd";
+            case 3:  return "rd";
+            default: return "th";
+        }
+    }
+
+    function getDynamicWeekLabels() {
+        const labels = [];
+        const baseDate = new Date(PROGRAM_START_DATE_STR + "T00:00:00");
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        for (let i = 0; i < 16; i++) { 
+            const weekDate = new Date(baseDate);
+            weekDate.setDate(baseDate.getDate() + (i * 7));
+            const month = monthNames[weekDate.getMonth()];
+            const dayNum = weekDate.getDate();
+            labels.push(`${month} ${dayNum}${getOrdinalSuffix(dayNum)}`);
+        }
+        return labels;
+    }
+
+    const weekStartDates = getDynamicWeekLabels();
+
+    const programData = {
+        adult: [
+            { focus: "Week 1: Lower Activation Barrier", science: "Short bursts of action bypass the amygdala's threat response to intimidating tasks, lowering friction and strengthening dopamine pathways tied to task initiation.", days: ["Pick a mess on your desk. Set a timer for 5 minutes and clean only what you can in that window. Stop immediately when time is up.", "Open an email or document you've avoided. Write just two sentences or outline three bullet points. Close it when the timer rings.", "Identify one phone call or errand you've delayed. Spend 5 minutes gathering the info or drafting the text/email to schedule it.", "Set a 5-minute timer to organize one digital folder or clean up your desktop screen.", "Pick one physical chore (e.g., folding laundry). Do it at top speed for 5 minutes, then stop.", "Spend 5 minutes drafting a rough plan for a project without worrying about making it perfect.", "Do a 5-minute rapid brainstorm on paper of everything on your mind, then pick just one item to archive."] },
+            { focus: "Week 2: Interrupt Automatic Responses", science: "Pausing before acting engages the Prefrontal Cortex (the brain's impulse control center), weakening default habit loops in the Basal Ganglia.", days: ["When you feel the urge to check your phone, sit quietly for 3 minutes and observe the urge without reaching for the device.", "Before opening a social media app or news site, sit motionless for 3 minutes and track your breathing.", "If you feel an urge to snack out of boredom, sit with the physical sensation for 3 minutes before deciding.", "Notice when you feel rushed. Stop moving entirely for 3 minutes and focus on relaxing your jaw and shoulders.", "Set a 3-minute timer during a transition moment (e.g., after parking your car) and sit in silence before going inside.", "Catch yourself about to multitask. Stop, sit for 3 minutes, and reset your focus to a single objective.", "When annoyed today, pause for 3 minutes before responding. Observe your physical reaction without acting."] },
+            { focus: "Week 3: Micro-Decision Making", science: "Prioritizing single tasks calms the Anterior Cingulate Cortex, reducing decision fatigue and sharpening cognitive control.", days: ["Write down your single highest-priority task on paper. Work on it for 5 uninterrupted minutes before opening email.", "Pick the hardest task on your list. Perform just 5 minutes of prep work on it first thing in the morning.", "Decide on your dinner plan for today immediately. Spend 5 minutes pulling ingredients or prepping.", "Identify your biggest time-waster today. Write it down and replace it with a 5-minute single-task focus block.", "Spend 5 minutes decluttering your immediate workspace so only one item or tab is visible.", "Make three small decisions you've been delaying within 5 minutes (e.g., reply 'yes/no', file a paper).", "Plan tomorrow's top priority task right now. Write it on a note and place it on your keyboard."] },
+            { focus: "Week 4: Cognitive Reappraisal", science: "Reframing triggers activates neuroplasticity in the Ventramedial Prefrontal Cortex, reducing stress-driven cortisol production.", days: ["Think of a minor frustration yesterday. Write down 2 neutral or positive alternative ways to interpret it.", "Identify a recent mistake. Write down 1 practical lesson it taught you and 1 reason to be easy on yourself.", "Think of a person who irritated you. Spend 5 minutes writing out a plausible, compassionate reason for their behavior.", "Write down a task you 'have to' do today. Rewrite it using the phrase 'I get to...' and note how your focus shifts.", "Take a current stressor and write down what the worst-case scenario is, followed by how you would handle it.", "Reframe a delay or inconvenience today as an unexpected opportunity to practice patience.", "Write down 3 things that went wrong this week, and next to each, write one unexpected positive outcome."] },
+            { focus: "Week 5: Voluntary Discomfort (Sisu)", science: "Controlled exposure to mild stress triggers neurochemical resilience, boosting noradrenaline and strengthening emotional regulation.", days: ["Turn your shower to cold for the last 30 to 60 seconds. Focus on deep, slow breaths.", "Spend 5 minutes doing an everyday task in total silence—no background music, podcasts, or television.", "Delay a small comfort (like your morning coffee or favorite snack) by 30 minutes to practice self-regulation.", "Sit on the floor in a comfortable posture for 5 minutes without leaning back or checking a device.", "Walk outdoors for 5 minutes without taking your phone or headphones with you.", "Spend 5 minutes doing a physical stretch that feels slightly challenging, focusing on steady breathing.", "Turn off all notifications on your phone for 1 hour while you work or relax."] },
+            { focus: "Week 6: Mid-Point Consolidation", science: "Reflection engages the Default Mode Network, helping consolidate new behavioral patterns into long-term memory structures.", days: ["Write down 1 small win from today and 1 micro-adjustment you will make tomorrow.", "Reflect on your past 5 weeks. Write down the single mental tool that helped you the most.", "Identify a habit you successfully shifted. Write down what triggered the change.", "Spend 5 minutes writing a short letter of advice to your past self from Week 1.", "Audit your environment: Remove 1 distraction from your room or workspace to protect your focus.", "Teach one concept you learned in this program to a family member or friend.", "Set your long-term daily micro-goal for the next month to keep your momentum going."] },
+            { focus: "Week 7: Sustained Focus & Deep Work", science: "Sustained attention builds synaptic density in the Parietal Cortex, increasing focus stamina and reducing task-switching lag.", days: ["Set a timer for 5 minutes. Read a book or dense article with zero interruptions or tab switches.", "Write continuously in a journal or document for 5 minutes without editing or backspacing.", "Spend 5 minutes reviewing complex data or a detailed task plan without multi-tasking.", "Perform a single repetitive chore (like hand-washing dishes) with complete, deliberate focus for 5 minutes.", "Listen to a technical podcast or audiobook for 5 minutes while doing nothing else with your hands or eyes.", "Focus on your breathing for 5 minutes, counting each exhale from 1 to 10 and restarting if your mind wanders.", "Spend 5 minutes outlining a complex problem, identifying step-by-step components without rushing to solutions."] },
+            { focus: "Week 8: Emotional Regulation & Stress Reset", science: "Vagus nerve stimulation via paced breathing down-regulates sympathetic nervous system activation, reducing physiological anxiety.", days: ["Practice 4-7-8 breathing (inhale 4s, hold 7s, exhale 8s) for 5 minutes to reset your nervous system.", "Spend 5 minutes scanning your body from head to toe, consciously relaxing clenched muscles.", "Write down every current worry on paper for 5 minutes, then physically fold and put the paper away.", "Spend 5 minutes stepping outside, gazing at distant horizon lines to expand visual field and calm focus.", "Identify a recurring stressor. Spend 5 minutes writing down what parts are within your control vs outside it.", "Practice progressive muscle relaxation: tense muscle groups for 5s, release for 5s for 5 total minutes.", "Spend 5 minutes engaging in a restorative activity (stretching, calm music) before entering a high-stress task."] },
+            { focus: "Week 9: Cognitive Flexibility & Pattern Disruption", science: "Breaking habitual routines stimulates neurogenesis in the Hippocampus, improving creative problem-solving and adaptive thinking.", days: ["Take a completely different physical route for a walk, drive, or routine movement today.", "Brush your teeth or perform a simple daily task using your non-dominant hand for 3 minutes.", "Reorganize 3 items on your primary desk or workspace to interrupt automatic physical reach patterns.", "Eat a meal or snack in total silence, paying attention exclusively to texture, temperature, and flavor.", "Spend 5 minutes solving a non-standard puzzle or logic game outside your usual domain.", "Write down an assumption you hold about a daily routine. Brainstorm 2 ways to execute it differently.", "Swap the order of two morning habits to force your brain to remain present during early routines."] },
+            { focus: "Week 10: Advanced Friction Reduction", science: "Pre-committing actions reduces reliance on finite willpower reserves, automating executive function pathways.", days: ["Prepare everything needed for tomorrow's most difficult task 24 hours in advance (open tabs, layout materials).", "Spend 5 minutes creating a visual cue in your home or office that triggers a positive habit.", "Identify a daily friction point (e.g., lost keys, cluttered counter) and spend 5 minutes engineering a structural fix.", "Set a 5-minute timer to batch-process tiny admin micro-tasks all at once.", "Write down your goal for tomorrow on a sticky note and place it directly over your phone screen.", "Establish a 5-minute wind-down ritual before bed to signal sleep readiness to your circadian clock.", "Remove 3 friction steps between you and a healthy habit (e.g., prep water bottle, move workout shoes)."] },
+            { focus: "Week 11: Myelination & Habit Anchoring", science: "Repeated, consistent execution wraps neural pathways in myelin sheath insulation, turning deliberate actions into effortless defaults.", days: ["Pair a new micro-habit directly after an established daily routine (e.g., stretch immediately after brushing teeth).", "Perform your core 5-minute focus exercise at the exact same minute of the day as yesterday.", "Track and record your habit completion velocity: notice how much faster you start compared to Week 1.", "Spend 5 minutes reinforcing your 'Why'—write down 3 long-term reasons this brain training matters to you.", "Practice your 5-minute focus block in a slightly noisier environment to test path stability.", "Spend 5 minutes organizing your environment to make unwanted habits high-friction and hard to access.", "Review your daily routines from the past month and explicitly identify your top 2 permanent anchors."] },
+            { focus: "Week 12: Long-Term Mastery & Autonomy", science: "Internalizing self-efficacy strengthens frontostriatal circuits, solidifying long-term behavioral autonomy and mental toughness.", days: ["Design your personal 5-minute daily maintenance routine to keep after this 12-week program finishes.", "Audit your 12-week progress log. Write down your top 3 biggest areas of cognitive growth.", "Identify your biggest remaining distraction and apply a customized 5-minute strategy to tackle it.", "Write a concise personal manifest of your mental principles (e.g., 'I handle friction with micro-steps').", "Teach your favorite Week 7-11 neuroscience concept to someone else to solidify your mastery.", "Perform a 5-minute review of potential future stress triggers and pre-plan your Sisu response.", "Celebrate your completion! Lock in your permanent daily 5-minute brain habit for the future."] },
+            { focus: "Week 13: Friction Proofing & High-Stress Execution", science: "Executing micro-habits during low-energy or high-friction states strengthens executive function under cognitive load.", days: ["Identify your single biggest focus drain from last week. Write down a 2-sentence 'If/Then' implementation intention to neutralize it.", "Set a 5-minute timer and complete a complex administrative task or dense reading in a noisy environment without breaking concentration.", "Perform a 5-minute mental audit on paper: dump every pending task, then classify each as 'Actionable Now', 'Delegate', or 'Trash'.", "Practice 5 minutes of deliberate single-tasking on a complex project during your lowest energy hour of the day.", "Write a 3-sentence journal reflection on a moment this week where you successfully bypassed task avoidance.", "Pick a complex project you've procrastinated on. Work on it continuously for 5 minutes with zero expectation of perfection.", "Review your upcoming week. Schedule the exact 5-minute windows for your daily brain retraining to ensure 100% adherence."] },
+            { focus: "Week 14: Personal Habit Architecture & Systems", science: "Designing custom behavioral systems transitions reliance from external prompts to internal self-directed autonomy.", days: ["Audit your past 13 weeks. Identify the single 5-minute focus exercise that yielded the highest cognitive return and write down why.", "Engineered habit design: Spend 5 minutes writing a structured protocol for a custom daily focus ritual tailored to your workflow.", "Identify a recurring point of decision fatigue in your daily routine. Spend 5 minutes designing a structural system to automate it.", "Journal for 5 minutes analyzing a recent high-pressure situation you navigated successfully, identifying the key mental levers used.", "Execute your custom-designed 5-minute focus protocol from Tuesday under real-world conditions.", "Spend 5 minutes drafting your personal 'Rules of Engagement' for digital boundaries (e.g., email checking windows, notification caps).", "Perform a 5-minute digital environment optimization: declutter primary desktop screens, archive inactive files, and streamline open tabs."] },
+            { focus: "Week 15: Deep Cognitive Framing & Mentorship", science: "Articulating internal mental models to others reinforces myelination, solidifying deep behavioral identity shifts.", days: ["Explain one core neuroscience concept from this program (e.g., neuroplasticity, vagus nerve regulation) to a colleague or family member.", "Identify a current professional or personal obstacle. Spend 5 minutes reframing it on paper as a deliberate cognitive stress-test.", "Engage in 5 minutes of joint problem-solving or deep focus alongside a family member or peer to model sustained attention.", "Document three specific cognitive strategies that successfully prevented burnout or distraction during peak workload periods.", "Journal for 5 minutes on the prompt: 'How has my default response to friction and task initiation evolved since Week 1?'", "Analyze a recent setback or misstep. Spend 5 minutes writing down the exact root-cause adjustment for future execution.", "Draft a concise 3-bullet note of strategic focus advice to share with a family member or peer."] },
+            { focus: "Week 16: Executive Mastery & Life Manifesto", science: "Internalizing self-efficacy solidifies long-term frontostriatal pathways, converting deliberate focus into an enduring default identity.", days: ["Document your top 3 non-negotiable mental principles for maintaining focus, emotional regulation, and resilience under pressure.", "Draft your 5-minute 'Executive Focus Manifesto'—a definitive paragraph establishing your core identity as a intentional leader of your attention.", "Audit your 112-day journey. Calculate your total completion metrics, evaluate your progress, and lock in your permanent gains.", "Execute a 5-minute deep focus block on your highest-leverage long-term objective without single breakdown in attention.", "Write a letter to your future self outlining the environmental boundaries and daily habits you commit to sustaining permanently.", "Design your permanent post-graduation daily 5-minute maintenance ritual to ensure continuous cognitive sharpening.", "Celebrate your full 16-week completion! Share your total progress with your family and lock in your lifelong habit."] }
+        ],
+        kids: [
+            { focus: "Week 1: The 5-Minute Starter", science: "Starting small teaches the brain that getting to work isn't scary, building confidence and dopamine rewards.", days: ["Set a timer for 5 minutes and pick up as many items off your room floor as you can!", "Clean off just the top of your desk or table before the 5-minute timer runs out.", "Organize one shelf or one drawer in 5 minutes.", "Put 5 minutes on the timer and organize your school bag or backpack for tomorrow.", "Set a timer for 5 minutes and gather all the dirty clothes in your room into the hamper.", "Spend 5 minutes putting away clean dishes or setting the dinner table.", "Spend 5 minutes sharpening pencils, organizing pens, or tidying your workspace."] },
+            { focus: "Week 2: Pause & Reset", science: "Practicing quiet waiting trains the front part of the brain to help manage big feelings and sudden impulses.", days: ["Set a 3-minute timer. Sit comfortably and practice breathing in for 4 seconds, and out for 4 seconds.", "Hold a 3-minute plank or wall-sit while focusing entirely on slow breathing.", "Put your phone or tablet in another room. Sit quietly for 3 minutes without looking at a screen.", "Listen to a calm song for 3 minutes with your eyes closed. Try to hear every instrument.", "Stand on one foot for 1 minute, then switch feet! Focus on staying balanced and calm.", "Sit quietly for 3 minutes and count how many different sounds you can hear around you.", "When you feel like interrupting someone today, take 3 deep breaths before speaking."] },
+            { focus: "Week 3: Pick the Big Task First", science: "Doing important tasks first builds willpower muscle and reduces worry later in the day.", days: ["Pick your main homework assignment. Work on it for 5 minutes before anything else.", "Pick the one chore you dislike most. Spend just 5 minutes starting it right now.", "Write down 3 things you need to do today. Put a star next to the most important one and start it.", "Spend 5 minutes reading a book before turning on any screens or video games.", "Pack your school bag for tomorrow right now so you don't have to rush in the morning.", "Spend 5 minutes practicing a skill (sports, instrument, drawing) before downtime.", "Clean up your work or study area before moving on to your next activity."] },
+            { focus: "Week 4: Flip the Thought", science: "Looking for positive angles trains your brain to bounce back quickly when things don't go as planned.", days: ["Think of something that went wrong yesterday. Find one good thing or lesson that came from it.", "Say three nice things about yourself out loud or write them down in a notebook.", "If a task feels hard today, say out loud: 'I can't do this YET, but I am learning!'", "Think of a friend or family member. Write down 2 reasons why you appreciate them.", "Reframe a mistake from this week into a 3-sentence note on what you learned and how to adjust next time.", "When something annoys you today, list 2 things nearby that you are thankful for.", "Share one good moment from your day with someone in your family during dinner."] },
+            { focus: "Week 5: The Quiet Challenge", science: "Doing things without extra noise strengthens your concentration and deepens focus.", days: ["Journal, doodle, or sketch in a notebook for 5 minutes in complete silence.", "Read a book chapter for 5 minutes with no TV or music in the background.", "Eat a snack for 5 minutes without watching a video or looking at a screen.", "Do 5 minutes of simple body stretches in a quiet space.", "Solve today's word puzzle or cipher in 5 quiet minutes without background noise or extra tabs open. <a href='https://www.nytimes.com/games/strands' target='_blank'>Play NYT Strands Online ↗</a>", "Walk around your house or yard for 5 minutes while staying completely quiet.", "Spend 5 minutes tidying your room with no background noise."] },
+            { focus: "Week 6: Mid-Point Celebration", science: "Noticing your progress locks in good habits and makes your brain want to keep growing.", days: ["Write down or tell someone 2 things: 1 win from today, and 1 thing you want to try tomorrow.", "Look back at Week 1. Tell someone how much easier starting tasks has become!", "Map out a 5-minute mind map or diagram of your main focus area for the upcoming month.", "Teach your favorite 5-minute challenge to a parent, sibling, or friend.", "Write down your favorite brain training exercise from the past 6 weeks.", "Write down two specific things you accomplished this week that required real effort.", "Pick one 5-minute habit you want to keep doing every single day!"] },
+            { focus: "Week 7: Laser Focus Power", science: "Focusing on one thing without stopping builds focus stamina in your brain.", days: ["Read a chapter or article for 5 whole minutes without looking away or switching tasks.", "Trace or draw a detailed design or maze for 5 minutes without rushing.", "Listen closely to an entire podcast episode or audio clip for 5 minutes.", "Count backward from 100 by 2s (100, 98, 96...) for 5 minutes or until you finish!", "Stack coins, cards, or books into a stable tower as carefully as you can for 5 minutes.", "Focus on balancing a book on your head while walking slowly for 5 minutes.", "Practice writing your cleanest handwriting or calligraphy for 5 full minutes."] },
+            { focus: "Week 8: The Calm Down Button", science: "Deep breathing tells your brain's alarm system that you are safe and in control.", days: ["Practice 'Belly Breathing': Put your hands on your stomach and breathe deeply for 5 minutes.", "Squeeze your hands into tight fists for 5 seconds, then let go! Repeat all over your body for 5 minutes.", "Close your eyes for 5 minutes and picture your favorite peaceful place in detail.", "Slowly drink a glass of water, taking 5 quiet minutes to focus on every sip.", "When something makes you feel annoyed today, count to 10 slowly before reacting.", "Stretch your arms high up to the sky and down to your toes slowly for 5 minutes.", "Write or outline 3 things that help you feel calm when you feel stressed."] },
+            { focus: "Week 9: Mix It Up!", science: "Trying new ways to do everyday things makes your brain flexible and creative.", days: ["Try writing your name or drawing with your opposite hand for 5 minutes!", "Take a completely non-standard route on your daily drive, walk, or path between classes/work.", "Try walking backward carefully through your hallway for 5 minutes.", "Draft a quick 5-minute cryptogram, logic cipher, or word riddle for someone else to solve.", "Make up a new quick game using basic household items like a pen and paper.", "Design or sketch a mini layout for your room using items in a new way.", "Eat your snack today using your non-dominant hand."] },
+            { focus: "Week 10: Ready, Set, Prep!", science: "Setting up your space ahead of time makes starting good habits super easy.", days: ["Set out your clothes and shoes for tomorrow night before going to bed.", "Put your school books and assignments right by the door so you can't forget them.", "Create a clean work spot on your desk with only your essential materials.", "Make a mini 3-item checklist of things you need to do tomorrow morning.", "Clean off your nightstand so it's fresh and ready for sleep tonight.", "Set out your water bottle and gear ready for tomorrow.", "Organize your shoes by the door so morning exits are smooth and quick."] },
+            { focus: "Week 11: Habit Stacking", science: "Connecting new habits to old habits makes them stick like glue in your memory.", days: ["Do 5 minutes of stretching immediately after you finish brushing your teeth.", "Do your 5-minute task setup right after you put your school bag away.", "Say 1 thing you are thankful for right after you sit down for dinner.", "Put your shoes away in their spot immediately when you walk through the door.", "Do 5 minutes of reading right after you finish your morning routine.", "Tidy up your workspace right after you finish your last assignment.", "Review your daily streak and celebrate how natural your daily habit feels now!"] },
+            { focus: "Week 12: Super Brain Master", science: "Recognizing your growth locks in your confidence so you can handle any hard challenge in the future!", days: ["Pick your favorite 5-minute brain exercise from all 12 weeks and do it today!", "Write down your personal core principles for maintaining focus and handling pressure under friction.", "Tell a parent or friend the top 3 brain tricks that helped you the most.", "Write down one big goal you want to tackle next using your 5-minute power.", "Create a custom 5-minute daily challenge that you want to keep doing every day.", "High-five your family members and share one growth moment from your 12 weeks.", "Award yourself the title of Brain Retraining Master for finishing 84 days!"] },
+            { focus: "Week 13: Friction Proofing & Noise Resistance", science: "Training executive control to maintain focus despite environmental friction and low energy states.", days: ["Identify your single biggest distraction trigger from last week. Write a 2-sentence 'If/Then' plan to bypass it today.", "Set a 5-minute timer and solve a dense logic grid, cipher, or word puzzle in a room with background chatter or TV noise.", "Do a 5-minute mental audit on paper: write down every pending assignment or task causing stress, then categorize them into 'Urgent' vs 'Ignore'.", "Solve today's NYT Strands or daily word cipher in 5 uninterrupted minutes without opening any extra tabs or apps. <a href='https://www.nytimes.com/games/strands' target='_blank'>Play NYT Strands Online ↗</a>", "Write a 3-sentence journal entry reflecting on a moment this week when you wanted to procrastinate but started anyway.", "Pick a task you've been delaying. Set a 5-minute timer and do a 'sloppy first draft' or prep work without stopping to correct mistakes.", "Review your upcoming week schedule. Write down the exact 5-minute window each day you will complete your brain retraining."] },
+            { focus: "Week 14: Custom Habit Architecture", science: "Transitioning from guided instructions to internal autonomy and self-directed executive planning.", days: ["Review the past 13 weeks. Write down the single 5-minute exercise that gave you the highest focus return.", "Design your own custom 5-minute focus or logic puzzle challenge and write out the exact rules on paper.", "Draft a quick 5-minute cryptogram, logic cipher, or word riddle, then swap with a family member to solve.", "Journal for 5 minutes about a time you handled a high-pressure moment well. Identify what mindset helped you succeed.", "Execute the custom 5-minute focus exercise you designed on Tuesday.", "Spend 5 minutes writing down your personal 'distraction rulebook' (e.g., 'Phones stay in another room during study blocks').", "Do a 5-minute digital workspace reset: archive old notes, organize school file folders, and clear your desktop."] },
+            { focus: "Week 15: Peer Coaching & Re-framing", science: "Teaching concepts to others solidifies myelination and deeply embeds behavioral identity.", days: ["Teach one neuroscience concept you learned in this program (e.g., prefrontal cortex, dopamine pathways) to a parent or sibling.", "Think of a current academic or personal frustration. Reframe it into a 3-sentence note on how it is making your brain stronger.", "Solve a complex word search, cipher, or logic puzzle alongside a family member for 5 uninterrupted minutes.", "Write down three specific focus strategies that helped you get through busy school weeks this semester.", "Journal for 5 minutes on the prompt: 'How has my ability to start hard tasks changed since Week 1?'", "Spend 5 minutes analyzing a mistake made on a recent test or assignment, writing down the exact adjustment for next time.", "Write a short 3-bullet note of encouragement or focus advice to leave for a family member."] },
+            { focus: "Week 16: The Graduation & Personal Focus Manifesto", science: "Internalizing self-efficacy to turn temporary exercises into a permanent identity.", days: ["Write down your top 3 non-negotiable mental principles for handling stress and maintaining concentration.", "Draft your 5-minute 'Focus Manifesto'—a short paragraph describing the kind of focused person you choose to be.", "Spend 5 minutes reviewing your 112-day journey. Calculate your completion rate and celebrate your progress.", "Solve a high-level logic puzzle or cryptogram to test your sustained 5-minute focus stamina.", "Write a letter to your future self outlining the daily habits you commit to keeping for the rest of the school year.", "Design your permanent post-graduation daily 5-minute maintenance routine.", "Award yourself the title of Master of Focus! Share your completed progress bar with your family."] }
+        ]
+    };
+
+    let currentTrack = 'kids';
+    let currentWeek = 0;
+    let currentDay = 0;
+    let timerInterval = null;
+    let timeLeft = 300;
+
+    function getUserName() {
+        return localStorage.getItem('familyUserName') || '';
+    }
+
+    function saveUserName() {
+        const val = document.getElementById('userNameInput').value.trim();
+        if (val) {
+            localStorage.setItem('familyUserName', val);
+            listenToFamilyStatus();
+        }
+    }
+
+    function getStorageKey(track, week, day) {
+        return `retrain_${track}_w${week}_d${day}`;
+    }
+
+    function getModulePath() {
+        return `w${currentWeek}_d${currentDay}`;
+    }
+
+    function autoSelectTodayOld() {
+        const start = new Date(PROGRAM_START_DATE_STR + "T00:00:00");
+        const today = new Date();
+        const diffTime = today - start;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays >= 0 && diffDays < 112) {
+            currentWeek = Math.floor(diffDays / 7);
+            currentDay = diffDays % 7;
+        } else {
+            currentWeek = 0;
+            currentDay = 0;
+        }
+    }
+	
+	function autoSelectToday() {
+        // Parse start date in UTC
+        const startParts = PROGRAM_START_DATE_STR.split('-');
+        const startUTC = Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+
+        // Get current date in UTC (ignoring local time offset)
+        const now = new Date();
+        const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+        // Calculate exact calendar days elapsed
+        const diffDays = Math.floor((todayUTC - startUTC) / (1000 * 60 * 60 * 24));
+
+        if (diffDays >= 0 && diffDays < 112) {
+            currentWeek = Math.floor(diffDays / 7);
+            currentDay = diffDays % 7;
+        } else {
+            currentWeek = 0;
+            currentDay = 0;
+        }
+    }
+
+    function calculateStreak() {
+        const startParts = PROGRAM_START_DATE_STR.split('-');
+        const startUTC = Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+        const now = new Date();
+        const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+        const totalDaysElapsed = Math.floor((todayUTC - startUTC) / (1000 * 60 * 60 * 24));
+        if (totalDaysElapsed < 0) return 0;
+
+        let streak = 0;
+        
+        // Check if today is completed
+        const todayDone = localStorage.getItem(getStorageKey(currentTrack, Math.floor(totalDaysElapsed / 7), totalDaysElapsed % 7)) === 'true';
+
+        // If today isn't completed yet, start checking from yesterday so the active streak doesn't drop to 0 in the morning!
+        const startCheckDay = todayDone ? totalDaysElapsed : totalDaysElapsed - 1;
+
+        for (let i = startCheckDay; i >= 0; i--) {
+            const w = Math.floor(i / 7);
+            const d = i % 7;
+            if (localStorage.getItem(getStorageKey(currentTrack, w, d)) === 'true') {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        return streak;
+    }
+
+    function init() {
+        const savedName = getUserName();
+        const inputElem = document.getElementById('userNameInput');
+        if (savedName) {
+            inputElem.value = savedName;
+        } else {
+            inputElem.setAttribute('autofocus', 'true');
+            inputElem.focus();
+        }
+
+        autoSelectToday();
+        renderWeeks();
+        renderDays();
+        loadContent();
+        updateProgress();
+        setTimeout(listenToFamilyStatus, 1000);
+    }
+
+    function switchTrack(track) {
+        currentTrack = track;
+        autoSelectToday();
+        document.getElementById('btnAdult').classList.toggle('active', track === 'adult');
+        document.getElementById('btnKids').classList.toggle('active', track === 'kids');
+        renderWeeks();
+        renderDays();
+        loadContent();
+        updateProgress();
+        listenToFamilyStatus();
+    }
+
+    function toggleArchiveNav() {
+        const content = document.getElementById('archiveNavContent');
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function renderWeeks() {
+        const select = document.getElementById('weekDropdown');
+        if (!select) return;
+        select.innerHTML = '';
+        
+        programData[currentTrack].forEach((item, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.innerText = `Week ${idx + 1}: ${weekStartDates[idx]}`;
+            if (idx === currentWeek) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    function onWeekDropdownChange(val) {
+        currentWeek = parseInt(val, 10);
+        currentDay = 0;
+        renderDays();
+        loadContent();
+        listenToFamilyStatus();
+    }
+
+    function renderDays() {
+        const container = document.getElementById('daySelector');
+        container.innerHTML = '';
+        for (let d = 0; d < 7; d++) {
+            const btn = document.createElement('button');
+            const isDone = localStorage.getItem(getStorageKey(currentTrack, currentWeek, d)) === 'true';
+            btn.className = `day-btn ${d === currentDay ? 'active' : ''} ${isDone ? 'completed' : ''}`;
+            btn.innerText = `${dayNames[d]} ${isDone ? '✓' : ''}`;
+            btn.onclick = () => {
+                currentDay = d;
+                renderDays();
+                loadContent();
+                listenToFamilyStatus();
+            };
+            container.appendChild(btn);
+        }
+    }
+
+    function loadContent() {
+        pauseTimer();
+        const weekData = programData[currentTrack][currentWeek];
+        const weekLabelText = weekStartDates[currentWeek];
+
+        document.getElementById('focusTag').innerText = weekData.focus;
+        document.getElementById('exerciseTitle').innerText = `${weekLabelText} — ${dayNames[currentDay]}`;
+        document.getElementById('exerciseInstruction').innerHTML = weekData.days[currentDay];
+        document.getElementById('scienceText').innerText = weekData.science;
+
+        // Load weekly accordion legacy tool
+        document.getElementById('legacyText').innerHTML = legacyTools[currentWeek] || legacyTools[0];
+
+        const currentStreak = calculateStreak();
+        const flameBadge = document.getElementById('flameBadge');
+        flameBadge.innerText = `🔥 ${currentStreak} Streak`;
+        
+        if (currentStreak > 0) {
+            flameBadge.classList.add('active-streak');
+        } else {
+            flameBadge.classList.remove('active-streak');
+        }
+
+        timeLeft = (currentWeek === 1) ? 180 : 300; 
+        updateTimerDisplay();
+
+        const isCompleted = localStorage.getItem(getStorageKey(currentTrack, currentWeek, currentDay)) === 'true';
+        document.getElementById('completeBtn').style.display = isCompleted ? 'none' : 'block';
+        document.getElementById('completedBadge').style.display = isCompleted ? 'block' : 'none';
+    }
+
+    function updateTimerDisplay() {
+        const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const secs = (timeLeft % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+        if (timerInterval) return;
+        timerInterval = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateTimerDisplay();
+            } else {
+                pauseTimer();
+                playTimerAlarm();
+                triggerVibration();
+                alert("Time is up! Great job training your brain today.");
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        timeLeft = (currentWeek === 1) ? 180 : 300;
+        updateTimerDisplay();
+    }
+
+    function triggerConfetti() {
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 80,
+                spread: 60,
+                origin: { y: 0.7 }
+            });
+        }
+    }
+
+    function markComplete() {
+        if (!timerInterval) {
+            startTimer();
+        }
+
+        const userName = getUserName() || prompt("Enter your name for the family board:");
+        if (userName) {
+            localStorage.setItem('familyUserName', userName);
+            document.getElementById('userNameInput').value = userName;
+        }
+
+        localStorage.setItem(getStorageKey(currentTrack, currentWeek, currentDay), 'true');
+        
+        if (window.firebaseDB && userName) {
+            const cleanName = userName.replace(/[.#$/\[\]]/g, "");
+            const statusRef = window.dbRef(window.firebaseDB, `completions/${getModulePath()}/${cleanName}`);
+            window.dbSet(statusRef, {
+                done: true,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        triggerConfetti();
+        renderDays();
+        loadContent();
+        updateProgress();
+    }
+
+    function listenToFamilyStatus() {
+        if (!window.firebaseDB) return;
+
+        const pathRef = window.dbRef(window.firebaseDB, `completions/${getModulePath()}`);
+        window.dbOnValue(pathRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            const container = document.getElementById('familyGrid');
+            container.innerHTML = '';
+
+            const users = Object.keys(data);
+            if (users.length === 0) {
+                container.innerHTML = '<div style="font-size: 0.78rem; color: #64748b;">No check-ins yet for this day. Be the first!</div>';
+                return;
+            }
+
+            users.forEach(user => {
+                const chip = document.createElement('div');
+                chip.className = `member-chip ${data[user].done ? 'done' : ''}`;
+                chip.innerHTML = `<span>${user}</span> <span>${data[user].done ? '✓ Completed' : 'Pending'}</span>`;
+                container.appendChild(chip);
+            });
+        });
+    }
+
+    function updateProgress() {
+        let completed = 0;
+        for (let w = 0; w < 16; w++) {
+            for (let d = 0; d < 7; d++) {
+                if (localStorage.getItem(getStorageKey(currentTrack, w, d)) === 'true') {
+                    completed++;
+                }
+            }
+        }
+        const percentage = Math.round((completed / 112) * 100);
+        document.getElementById('progressBar').style.width = `${percentage}%`;
+        document.getElementById('streakDisplay').innerText = `Total Track Progress: ${completed} / 112 Days (${percentage}%)`;
+    }
+
+    function playTimerAlarm() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            [0, 0.25, 0.5].forEach(delay => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + delay);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + delay);
+                osc.stop(audioCtx.currentTime + delay + 0.15);
+            });
+        } catch (e) {
+            console.error("Audio Context error:", e);
+        }
+    }
+
+    function triggerVibration() {
+        if ("vibrate" in navigator) {
+            navigator.vibrate([200, 100, 200, 100, 400]);
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
