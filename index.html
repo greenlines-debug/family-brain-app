@@ -738,6 +738,61 @@
         }
         return streak;
     }
+	
+	// Calculate an unbroken consecutive daily streak from Firebase
+    function calculateStreakFromFirebase(callback) {
+        const userName = getUserName();
+        if (!userName || !window.firebaseDB) {
+            callback(0);
+            return;
+        }
+
+        const cleanName = userName.replace(/[.#$/\[\]]/g, "");
+        const startParts = PROGRAM_START_DATE_STR.split('-');
+        const startUTC = Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+        const now = new Date();
+        const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        const totalDaysElapsed = Math.min(Math.floor((todayUTC - startUTC) / (1000 * 60 * 60 * 24)), 111);
+
+        if (totalDaysElapsed < 0) {
+            callback(0);
+            return;
+        }
+
+        // Fetch all completions from Firebase
+        const completionsRef = window.dbRef(window.firebaseDB, 'completions');
+        completionsRef.once('value').then((snapshot) => {
+            const data = snapshot.val() || {};
+            let streak = 0;
+
+            // Check if today is completed in Firebase
+            const todayPath = `w${Math.floor(totalDaysElapsed / 7)}_d${totalDaysElapsed % 7}`;
+            const todayDone = data[todayPath] && data[todayPath][cleanName] && data[todayPath][cleanName].done === true;
+
+            // Start evaluating from today (if done) or yesterday (if today isn't finished yet)
+            // This prevents the streak from resetting to 0 in the morning before completing today's task.
+            const startCheckDay = todayDone ? totalDaysElapsed : totalDaysElapsed - 1;
+
+            for (let i = startCheckDay; i >= 0; i--) {
+                const w = Math.floor(i / 7);
+                const d = i % 7;
+                const path = `w${w}_d${d}`;
+
+                // Verify if a Firebase record exists for this specific day
+                if (data[path] && data[path][cleanName] && data[path][cleanName].done === true) {
+                    streak++;
+                } else {
+                    // STREAK BROKEN: Stop counting immediately if any day is missing
+                    break;
+                }
+            }
+
+            callback(streak);
+        }).catch((err) => {
+            console.error("Error reading streak from Firebase:", err);
+            callback(0);
+        });
+    }
 
     function init() {
         const savedName = getUserName();
@@ -827,7 +882,7 @@
         // Load weekly accordion legacy tool
         document.getElementById('legacyText').innerHTML = legacyTools[currentWeek] || legacyTools[0];
 
-        const currentStreak = calculateStreak();
+        const currentStreak = calculateStreakFromFirebase();
         const flameBadge = document.getElementById('flameBadge');
         flameBadge.innerText = `🔥 ${currentStreak} Streak`;
         
