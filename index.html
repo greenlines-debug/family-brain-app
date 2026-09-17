@@ -980,11 +980,15 @@
                     }
                 }
 
-                // 3. Render chip with flame streak and concise checkmark
+                // 3. Render chip with green checkmark or red X symbol
                 const chip = document.createElement('div');
                 chip.className = `member-chip ${isDone ? 'done' : ''}`;
                 const flameStr = streak > 0 ? ` 🔥${streak}` : '';
-                chip.innerHTML = `<span>${member}${flameStr}</span> <span>${isDone ? '✓' : 'Pending'}</span>`;
+                const statusSymbol = isDone 
+                    ? '<span style="color: #34d399; font-weight: 800;">✓</span>' 
+                    : '<span style="color: #ef4444; font-weight: 800;">✕</span>';
+
+                chip.innerHTML = `<span>${member}${flameStr}</span> ${statusSymbol}`;
                 container.appendChild(chip);
             });
         });
