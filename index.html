@@ -691,13 +691,8 @@
         }
     }
 
-    function calculateStreakFromFirebase(callback) {
-        const userName = getUserName();
-        if (!userName || !window.firebaseDB) {
-            callback(0);
-            return;
-        }
-
+    function calculateUserStreak(userName, allCompletionsData) {
+        if (!userName || !allCompletionsData) return 0;
         const cleanName = userName.replace(/[.#$/\[\]]/g, "");
         const startParts = PROGRAM_START_DATE_STR.split('-');
         const startUTC = Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
@@ -705,7 +700,42 @@
         const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
         const totalDaysElapsed = Math.min(Math.floor((todayUTC - startUTC) / (1000 * 60 * 60 * 24)), 111);
 
-        if (totalDaysElapsed < 0) {
+        if (totalDaysElapsed < 0) return 0;
+
+        const isDayComplete = (dayPath) => {
+            if (!allCompletionsData[dayPath]) return false;
+            const userKey = Object.keys(allCompletionsData[dayPath]).find(
+                k => k.trim().toLowerCase() === cleanName.trim().toLowerCase()
+            );
+            if (!userKey) return false;
+            const record = allCompletionsData[dayPath][userKey];
+            if (typeof record === 'object' && record !== null) {
+                return record.done === true || record.done === 'true' || record.completed === true;
+            }
+            return record === true || record === 'true';
+        };
+
+        const todayPath = `w${Math.floor(totalDaysElapsed / 7)}_d${totalDaysElapsed % 7}`;
+        const todayDone = isDayComplete(todayPath);
+        const startCheckDay = todayDone ? totalDaysElapsed : totalDaysElapsed - 1;
+
+        let streak = 0;
+        for (let i = startCheckDay; i >= 0; i--) {
+            const w = Math.floor(i / 7);
+            const d = i % 7;
+            const path = `w${w}_d${d}`;
+            if (isDayComplete(path)) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        return streak;
+    }
+
+    function calculateStreakFromFirebase(callback) {
+        const userName = getUserName();
+        if (!userName || !window.firebaseDB) {
             callback(0);
             return;
         }
@@ -713,43 +743,7 @@
         const completionsRef = window.dbRef(window.firebaseDB, 'completions');
         completionsRef.once('value').then((snapshot) => {
             const data = snapshot.val() || {};
-            let streak = 0;
-
-            // Helper to evaluate if a user completed a specific day node
-            const isDayComplete = (dayPath) => {
-                if (!data[dayPath]) return false;
-                
-                // Search keys case-insensitively to handle minor typos/case mismatches
-                const userKey = Object.keys(data[dayPath]).find(
-                    k => k.trim().toLowerCase() === cleanName.trim().toLowerCase()
-                );
-                
-                if (!userKey) return false;
-                const record = data[dayPath][userKey];
-
-                if (typeof record === 'object' && record !== null) {
-                    return record.done === true || record.done === 'true' || record.completed === true;
-                }
-                return record === true || record === 'true';
-            };
-
-            const todayPath = `w${Math.floor(totalDaysElapsed / 7)}_d${totalDaysElapsed % 7}`;
-            const todayDone = isDayComplete(todayPath);
-
-            const startCheckDay = todayDone ? totalDaysElapsed : totalDaysElapsed - 1;
-
-            for (let i = startCheckDay; i >= 0; i--) {
-                const w = Math.floor(i / 7);
-                const d = i % 7;
-                const path = `w${w}_d${d}`;
-
-                if (isDayComplete(path)) {
-                    streak++;
-                } else {
-                    break;
-                }
-            }
-
+            const streak = calculateUserStreak(userName, data);
             callback(streak);
         }).catch((err) => {
             console.error("Error reading streak from Firebase:", err);
