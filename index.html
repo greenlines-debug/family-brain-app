@@ -955,24 +955,30 @@
     function listenToFamilyStatus() {
         if (!window.firebaseDB) return;
 
-        const pathRef = window.dbRef(window.firebaseDB, `completions/${getModulePath()}`);
-        window.dbOnValue(pathRef, (snapshot) => {
+        // Listen to all completions so streaks compute accurately in real time
+        const completionsRef = window.dbRef(window.firebaseDB, 'completions');
+        window.dbOnValue(completionsRef, (snapshot) => {
             const data = snapshot.val() || {};
             const container = document.getElementById('familyGrid');
+            if (!container) return;
             container.innerHTML = '';
 
             const FAMILY_ROSTER = ["Aftyn", "Dad", "Dustin", "Mom", "Ruthie", "Sarah", "Hannah", "HannahR", "Joseph"];
+            const currentModule = getModulePath();
+            const todayData = data[currentModule] || {};
 
             FAMILY_ROSTER.forEach(member => {
-                // Find user entry in Firebase ignoring case
-                const userKey = Object.keys(data).find(
+                // 1. Calculate live streak from all Firebase history
+                const streak = calculateUserStreak(member, data);
+
+                // 2. Check if completed for selected day
+                const userKey = Object.keys(todayData).find(
                     k => k.trim().toLowerCase() === member.trim().toLowerCase()
                 );
 
                 let isDone = false;
                 if (userKey) {
-                    const record = data[userKey];
-                    // Handle all variations: object {done: true}, direct boolean true, or non-empty object
+                    const record = todayData[userKey];
                     if (typeof record === 'object' && record !== null) {
                         isDone = record.done === true || record.done === 'true' || record.completed === true;
                     } else if (record === true || record === 'true') {
@@ -980,9 +986,11 @@
                     }
                 }
 
+                // 3. Render chip with flame streak and concise checkmark
                 const chip = document.createElement('div');
                 chip.className = `member-chip ${isDone ? 'done' : ''}`;
-                chip.innerHTML = `<span>${member}</span> <span>${isDone ? '✓ Completed' : 'Pending'}</span>`;
+                const flameStr = streak > 0 ? ` 🔥${streak}` : '';
+                chip.innerHTML = `<span>${member}${flameStr}</span> <span>${isDone ? '✓' : 'Pending'}</span>`;
                 container.appendChild(chip);
             });
         });
